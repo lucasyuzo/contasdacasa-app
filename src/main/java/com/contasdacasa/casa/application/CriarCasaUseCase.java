@@ -2,9 +2,9 @@ package com.contasdacasa.casa.application;
 
 import com.contasdacasa.casa.domain.Casa;
 import com.contasdacasa.casa.domain.CasaRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class CriarCasaUseCase {
 
   private final CasaRepository casaRepository;

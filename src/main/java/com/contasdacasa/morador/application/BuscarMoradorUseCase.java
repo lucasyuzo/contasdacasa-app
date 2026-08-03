@@ -4,9 +4,9 @@ import com.contasdacasa.morador.domain.Morador;
 import com.contasdacasa.morador.domain.MoradorNaoEncontradoException;
 import com.contasdacasa.morador.domain.MoradorRepository;
 import java.util.UUID;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class BuscarMoradorUseCase {
 
   private final MoradorRepository moradorRepository;

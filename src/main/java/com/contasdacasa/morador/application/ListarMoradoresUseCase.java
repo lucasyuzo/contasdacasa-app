@@ -4,9 +4,9 @@ import com.contasdacasa.casa.domain.Casa;
 import com.contasdacasa.morador.domain.Morador;
 import com.contasdacasa.morador.domain.MoradorRepository;
 import java.util.List;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class ListarMoradoresUseCase {
 
   private final MoradorRepository moradorRepository;

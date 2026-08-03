@@ -4,9 +4,9 @@ import com.contasdacasa.casa.domain.Casa;
 import com.contasdacasa.casa.domain.CasaNaoEncontradaException;
 import com.contasdacasa.casa.domain.CasaRepository;
 import java.util.UUID;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class BuscarCasaUseCase {
 
   private final CasaRepository casaRepository;

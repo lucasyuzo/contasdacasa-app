@@ -2,9 +2,9 @@ package com.contasdacasa.morador.application;
 
 import com.contasdacasa.morador.domain.Morador;
 import com.contasdacasa.morador.domain.MoradorRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class RemoverMoradorUseCase {
 
   private final MoradorRepository moradorRepository;
