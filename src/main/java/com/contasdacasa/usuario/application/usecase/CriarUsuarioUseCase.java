@@ -2,6 +2,7 @@ package com.contasdacasa.usuario.application.usecase;
 
 import com.contasdacasa.usuario.application.domain.Usuario;
 import com.contasdacasa.usuario.application.port.UsuarioPort;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,8 @@ public class CriarUsuarioUseCase {
   }
 
   public Usuario executar(String nome) {
-    return usuarioPort.salvar(Usuario.criar(nome));
+    UUID id = UUID.randomUUID();
+    Usuario usuario = new Usuario(id, nome);
+    return usuarioPort.salvar(usuario);
   }
 }
