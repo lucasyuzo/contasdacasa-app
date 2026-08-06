@@ -28,20 +28,19 @@ class MoradorApiTest {
   @Test
   void adicionaMoradorAUmaCasaExistente() throws Exception {
     String casaId = criarCasa("Republica das Flores");
+    String usuarioId = criarUsuario("Ana");
 
     mockMvc
         .perform(
             post("/casas/" + casaId + "/moradores")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                                {"nome": "Ana"}
-                                """))
+                .content("{\"nome\": \"Ana\", \"usuarioId\": \"" + usuarioId + "\"}"))
         .andExpect(status().isCreated())
         .andExpect(header().exists("Location"))
         .andExpect(jsonPath("$.id").exists())
         .andExpect(jsonPath("$.nome").value("Ana"))
         .andExpect(jsonPath("$.casaId").value(casaId))
+        .andExpect(jsonPath("$.usuarioId").value(usuarioId))
         .andExpect(jsonPath("$._links.self.href").exists())
         .andExpect(jsonPath("$._links.casa.href").exists());
   }
@@ -49,16 +48,14 @@ class MoradorApiTest {
   @Test
   void consultaMoradorPeloLocationRetornadoNaCriacao() throws Exception {
     String casaId = criarCasa("Republica das Flores");
+    String usuarioId = criarUsuario("Ana");
 
     String location =
         mockMvc
             .perform(
                 post("/casas/" + casaId + "/moradores")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        """
-                                {"nome": "Ana"}
-                                """))
+                    .content("{\"nome\": \"Ana\", \"usuarioId\": \"" + usuarioId + "\"}"))
             .andReturn()
             .getResponse()
             .getHeader("Location");
@@ -72,15 +69,13 @@ class MoradorApiTest {
   @Test
   void rejeitaAdicionarMoradorAUmaCasaInexistente() throws Exception {
     String casaInexistente = UUID.randomUUID().toString();
+    String usuarioId = criarUsuario("Ana");
 
     mockMvc
         .perform(
             post("/casas/" + casaInexistente + "/moradores")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                                {"nome": "Ana"}
-                                """))
+                .content("{\"nome\": \"Ana\", \"usuarioId\": \"" + usuarioId + "\"}"))
         .andExpect(status().isNotFound());
   }
 
@@ -136,11 +131,72 @@ class MoradorApiTest {
         .andExpect(status().isNotFound());
   }
 
+  @Test
+  void rejeitaAdicionarMoradorComUsuarioInexistente() throws Exception {
+    String casaId = criarCasa("Republica das Flores");
+    String usuarioInexistente = UUID.randomUUID().toString();
+
+    mockMvc
+        .perform(
+            post("/casas/" + casaId + "/moradores")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nome\": \"Ana\", \"usuarioId\": \"" + usuarioInexistente + "\"}"))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void rejeitaAdicionarUsuarioComoMoradorDuasVezesNaMesmaCasa() throws Exception {
+    String casaId = criarCasa("Republica das Flores");
+    String usuarioId = criarUsuario("Ana");
+    adicionarMoradorComUsuario(casaId, usuarioId, "Ana");
+
+    mockMvc
+        .perform(
+            post("/casas/" + casaId + "/moradores")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nome\": \"Ana\", \"usuarioId\": \"" + usuarioId + "\"}"))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void permiteMesmoUsuarioSerMoradorDeCasasDiferentes() throws Exception {
+    String casaA = criarCasa("Republica das Flores");
+    String casaB = criarCasa("Republica dos Girassois");
+    String usuarioId = criarUsuario("Ana");
+    adicionarMoradorComUsuario(casaA, usuarioId, "Ana");
+
+    mockMvc
+        .perform(
+            post("/casas/" + casaB + "/moradores")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nome\": \"Ana\", \"usuarioId\": \"" + usuarioId + "\"}"))
+        .andExpect(status().isCreated());
+  }
+
   private String adicionarMorador(String casaId, String nome) throws Exception {
+    String usuarioId = criarUsuario(nome);
+    return adicionarMoradorComUsuario(casaId, usuarioId, nome);
+  }
+
+  private String adicionarMoradorComUsuario(String casaId, String usuarioId, String nome)
+      throws Exception {
     String response =
         mockMvc
             .perform(
                 post("/casas/" + casaId + "/moradores")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nome\": \"" + nome + "\", \"usuarioId\": \"" + usuarioId + "\"}"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    return JsonPath.read(response, "$.id");
+  }
+
+  private String criarUsuario(String nome) throws Exception {
+    String response =
+        mockMvc
+            .perform(
+                post("/usuarios")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"nome\": \"" + nome + "\"}"))
             .andReturn()

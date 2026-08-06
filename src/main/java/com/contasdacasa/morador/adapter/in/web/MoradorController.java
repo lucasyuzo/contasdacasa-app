@@ -11,7 +11,10 @@ import com.contasdacasa.morador.application.CriarMoradorUseCase;
 import com.contasdacasa.morador.application.ListarMoradoresUseCase;
 import com.contasdacasa.morador.application.RemoverMoradorUseCase;
 import com.contasdacasa.morador.application.ValidarMoradorPertenceACasaUseCase;
+import com.contasdacasa.morador.application.ValidarUsuarioDisponivelParaCasaUseCase;
 import com.contasdacasa.morador.domain.Morador;
+import com.contasdacasa.usuario.application.BuscarUsuarioUseCase;
+import com.contasdacasa.usuario.domain.Usuario;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.hateoas.CollectionModel;
@@ -29,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 class MoradorController {
 
   private final BuscarCasaUseCase buscarCasaUseCase;
+  private final BuscarUsuarioUseCase buscarUsuarioUseCase;
+  private final ValidarUsuarioDisponivelParaCasaUseCase validarUsuarioDisponivelParaCasaUseCase;
   private final CriarMoradorUseCase criarMoradorUseCase;
   private final BuscarMoradorUseCase buscarMoradorUseCase;
   private final ListarMoradoresUseCase listarMoradoresUseCase;
@@ -37,12 +42,16 @@ class MoradorController {
 
   MoradorController(
       BuscarCasaUseCase buscarCasaUseCase,
+      BuscarUsuarioUseCase buscarUsuarioUseCase,
+      ValidarUsuarioDisponivelParaCasaUseCase validarUsuarioDisponivelParaCasaUseCase,
       CriarMoradorUseCase criarMoradorUseCase,
       BuscarMoradorUseCase buscarMoradorUseCase,
       ListarMoradoresUseCase listarMoradoresUseCase,
       ValidarMoradorPertenceACasaUseCase validarMoradorPertenceACasaUseCase,
       RemoverMoradorUseCase removerMoradorUseCase) {
     this.buscarCasaUseCase = buscarCasaUseCase;
+    this.buscarUsuarioUseCase = buscarUsuarioUseCase;
+    this.validarUsuarioDisponivelParaCasaUseCase = validarUsuarioDisponivelParaCasaUseCase;
     this.criarMoradorUseCase = criarMoradorUseCase;
     this.buscarMoradorUseCase = buscarMoradorUseCase;
     this.listarMoradoresUseCase = listarMoradoresUseCase;
@@ -52,7 +61,8 @@ class MoradorController {
 
   static MoradorResponse toResponse(Morador morador) {
     MoradorResponse response =
-        new MoradorResponse(morador.getId(), morador.getNome(), morador.getCasaId());
+        new MoradorResponse(
+            morador.getId(), morador.getNome(), morador.getCasaId(), morador.getUsuarioId());
     response.add(
         linkTo(methodOn(MoradorController.class).buscar(morador.getCasaId(), morador.getId()))
             .withSelfRel());
@@ -65,7 +75,9 @@ class MoradorController {
   ResponseEntity<MoradorResponse> adicionar(
       @PathVariable UUID casaId, @Valid @RequestBody MoradorRequest request) {
     Casa casa = buscarCasaUseCase.executar(casaId);
-    Morador morador = criarMoradorUseCase.executar(casa, request.nome());
+    Usuario usuario = buscarUsuarioUseCase.executar(request.usuarioId());
+    validarUsuarioDisponivelParaCasaUseCase.executar(usuario, casa);
+    Morador morador = criarMoradorUseCase.executar(casa, usuario, request.nome());
     return ResponseEntity.created(
             linkTo(methodOn(MoradorController.class).buscar(casaId, morador.getId())).toUri())
         .body(toResponse(morador));

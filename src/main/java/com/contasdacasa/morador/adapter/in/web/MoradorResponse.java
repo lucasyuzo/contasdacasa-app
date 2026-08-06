@@ -8,11 +8,13 @@ class MoradorResponse extends RepresentationModel<MoradorResponse> {
   private final UUID id;
   private final String nome;
   private final UUID casaId;
+  private final UUID usuarioId;
 
-  MoradorResponse(UUID id, String nome, UUID casaId) {
+  MoradorResponse(UUID id, String nome, UUID casaId, UUID usuarioId) {
     this.id = id;
     this.nome = nome;
     this.casaId = casaId;
+    this.usuarioId = usuarioId;
   }
 
   public UUID getId() {
@@ -25,5 +27,9 @@ class MoradorResponse extends RepresentationModel<MoradorResponse> {
 
   public UUID getCasaId() {
     return casaId;
+  }
+
+  public UUID getUsuarioId() {
+    return usuarioId;
   }
 }

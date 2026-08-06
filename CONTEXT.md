@@ -38,8 +38,12 @@ Morador incluído no rateio de uma Despesa específica. Uma Despesa não precisa
 **Casa**:
 Grupo de n Moradores que compartilham Despesas.
 
+**Usuario**:
+Pessoa com identidade única no sistema, apta a se tornar Morador em N Casas (um Morador por Casa).
+_Avoid_: Conta, Login, Pessoa (isolado, ambíguo)
+
 **Morador**:
-Pessoa vinculada a uma única Casa por vez, elegível a ser Participante de Despesas.
+Vínculo de um Usuario a uma Casa específica, elegível a ser Participante de Despesas. Um Usuario pode ter um Morador por Casa; um Morador pertence a exatamente uma Casa.
 
 **Renda**:
 Valor persistente cadastrado no Morador, atualizável, usado no Rateio do tipo Por Renda. Não é informado no cadastro da Despesa.

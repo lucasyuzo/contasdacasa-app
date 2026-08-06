@@ -13,4 +13,6 @@ public interface MoradorRepository {
   List<Morador> listarPorCasa(UUID casaId);
 
   void remover(UUID id);
+
+  boolean existePorUsuarioECasa(UUID usuarioId, UUID casaId);
 }

@@ -3,6 +3,8 @@ package com.contasdacasa.shared.adapter.in.web;
 import com.contasdacasa.casa.domain.CasaNaoEncontradaException;
 import com.contasdacasa.morador.domain.MoradorNaoEncontradoException;
 import com.contasdacasa.morador.domain.MoradorNaoPertenceACasaException;
+import com.contasdacasa.morador.domain.UsuarioJaEhMoradorDaCasaException;
+import com.contasdacasa.usuario.domain.UsuarioNaoEncontradoException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -26,6 +28,16 @@ class RegraDeNegocioExceptionHandler {
   @ExceptionHandler(MoradorNaoPertenceACasaException.class)
   ProblemDetail handleMoradorNaoPertenceACasa(MoradorNaoPertenceACasaException ex) {
     return notFound(ex.getMessage());
+  }
+
+  @ExceptionHandler(UsuarioNaoEncontradoException.class)
+  ProblemDetail handleUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex) {
+    return notFound(ex.getMessage());
+  }
+
+  @ExceptionHandler(UsuarioJaEhMoradorDaCasaException.class)
+  ProblemDetail handleUsuarioJaEhMoradorDaCasa(UsuarioJaEhMoradorDaCasaException ex) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
