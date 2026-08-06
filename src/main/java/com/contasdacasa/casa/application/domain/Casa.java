@@ -1,7 +1,10 @@
 package com.contasdacasa.casa.application.domain;
 
+import lombok.Getter;
+
 import java.util.UUID;
 
+@Getter
 public class Casa {
 
     private final UUID id;
@@ -18,13 +21,5 @@ public class Casa {
 
     public static Casa reconstituir(UUID id, String nome) {
         return new Casa(id, nome);
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getNome() {
-        return nome;
     }
 }

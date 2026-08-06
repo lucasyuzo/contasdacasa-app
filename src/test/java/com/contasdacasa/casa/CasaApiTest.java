@@ -53,6 +53,7 @@ class CasaApiTest {
                         .getResponse()
                         .getHeader("Location");
 
+        assert location != null;
         mockMvc.perform(get(location))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Republica das Flores"));

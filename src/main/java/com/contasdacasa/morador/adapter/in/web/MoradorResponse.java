@@ -1,9 +1,12 @@
 package com.contasdacasa.morador.adapter.in.web;
 
+import lombok.Getter;
+
 import org.springframework.hateoas.RepresentationModel;
 
 import java.util.UUID;
 
+@Getter
 class MoradorResponse extends RepresentationModel<MoradorResponse> {
 
     private final UUID id;
@@ -16,21 +19,5 @@ class MoradorResponse extends RepresentationModel<MoradorResponse> {
         this.nome = nome;
         this.casaId = casaId;
         this.usuarioId = usuarioId;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public UUID getCasaId() {
-        return casaId;
-    }
-
-    public UUID getUsuarioId() {
-        return usuarioId;
     }
 }
