@@ -3,6 +3,9 @@ package com.contasdacasa.shared.adapter.in.web;
 import com.contasdacasa.casa.application.exception.CasaNaoEncontradaException;
 import com.contasdacasa.despesa.application.exception.DespesaNaoEncontradaException;
 import com.contasdacasa.despesa.application.exception.DespesaNaoPertenceACasaException;
+import com.contasdacasa.divida.application.exception.DividaNaoEncontradaException;
+import com.contasdacasa.divida.application.exception.QuitacaoExcedeSaldoDaDividaException;
+import com.contasdacasa.divida.application.exception.QuitacaoValorInvalidoException;
 import com.contasdacasa.morador.application.exception.MoradorNaoEncontradoException;
 import com.contasdacasa.morador.application.exception.MoradorNaoPertenceACasaException;
 import com.contasdacasa.morador.application.exception.UsuarioJaEhMoradorDaCasaException;
@@ -52,6 +55,21 @@ class RegraDeNegocioExceptionHandler {
     @ExceptionHandler(UsuarioJaEhMoradorDaCasaException.class)
     ProblemDetail handleUsuarioJaEhMoradorDaCasa(UsuarioJaEhMoradorDaCasaException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(DividaNaoEncontradaException.class)
+    ProblemDetail handleDividaNaoEncontrada(DividaNaoEncontradaException ex) {
+        return notFound(ex.getMessage());
+    }
+
+    @ExceptionHandler(QuitacaoExcedeSaldoDaDividaException.class)
+    ProblemDetail handleQuitacaoExcedeSaldoDaDivida(QuitacaoExcedeSaldoDaDividaException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(QuitacaoValorInvalidoException.class)
+    ProblemDetail handleQuitacaoValorInvalido(QuitacaoValorInvalidoException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

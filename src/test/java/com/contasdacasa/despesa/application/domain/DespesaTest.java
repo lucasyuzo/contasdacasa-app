@@ -2,6 +2,8 @@ package com.contasdacasa.despesa.application.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.contasdacasa.divida.application.domain.Divida;
+
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 

@@ -1,5 +1,7 @@
 package com.contasdacasa.despesa.application.domain;
 
+import com.contasdacasa.divida.application.domain.Divida;
+
 import lombok.Getter;
 
 import java.math.BigDecimal;

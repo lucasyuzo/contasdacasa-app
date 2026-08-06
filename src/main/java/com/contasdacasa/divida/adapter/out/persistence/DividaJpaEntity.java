@@ -1,4 +1,4 @@
-package com.contasdacasa.despesa.adapter.out.persistence;
+package com.contasdacasa.divida.adapter.out.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

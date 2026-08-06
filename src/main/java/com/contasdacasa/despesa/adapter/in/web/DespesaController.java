@@ -10,6 +10,8 @@ import com.contasdacasa.despesa.application.domain.Despesa;
 import com.contasdacasa.despesa.application.usecase.BuscarDespesaUseCase;
 import com.contasdacasa.despesa.application.usecase.CriarDespesaUseCase;
 import com.contasdacasa.despesa.application.usecase.ValidarDespesaPertenceACasaUseCase;
+import com.contasdacasa.divida.adapter.in.web.DividaController;
+import com.contasdacasa.divida.adapter.in.web.DividaResponse;
 import com.contasdacasa.morador.application.domain.Morador;
 import com.contasdacasa.morador.application.usecase.BuscarMoradorUseCase;
 import com.contasdacasa.morador.application.usecase.ValidarMoradorPertenceACasaUseCase;
@@ -55,15 +57,7 @@ class DespesaController {
 
     static DespesaResponse toResponse(Despesa despesa) {
         List<DividaResponse> dividas =
-                despesa.getDividas().stream()
-                        .map(
-                                divida ->
-                                        new DividaResponse(
-                                                divida.getId(),
-                                                divida.getParticipanteId(),
-                                                divida.getPagadorId(),
-                                                divida.getValor()))
-                        .toList();
+                despesa.getDividas().stream().map(DividaController::toResponse).toList();
         DespesaResponse response =
                 new DespesaResponse(
                         despesa.getId(),
