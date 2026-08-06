@@ -3,9 +3,9 @@ package com.contasdacasa.casa.adapter.in.web;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import com.contasdacasa.casa.application.BuscarCasaUseCase;
-import com.contasdacasa.casa.application.CriarCasaUseCase;
-import com.contasdacasa.casa.domain.Casa;
+import com.contasdacasa.casa.application.domain.Casa;
+import com.contasdacasa.casa.application.usecase.BuscarCasaUseCase;
+import com.contasdacasa.casa.application.usecase.CriarCasaUseCase;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;

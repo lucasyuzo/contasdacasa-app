@@ -1,3 +1,15 @@
+## Ambiente local
+
+Stack: Java 26, Spring Boot 4.1.0, Maven (wrapper `./mvnw`), Postgres, Flyway.
+
+Banco: Postgres local na porta 5432, db `contasdacasa`, user `postgres` (ver `src/main/resources/application.properties`). Sem docker-compose no repo — subir Postgres manualmente antes de rodar a app ou os testes de integracao.
+
+Comandos:
+- Build: `./mvnw compile`
+- Testes: `./mvnw test`
+- Rodar: `./mvnw spring-boot:run`
+- Migration: Flyway roda automatico no boot (`spring.flyway.enabled=true`), arquivos em `src/main/resources/db/migration`
+
 ## Agent skills
 
 ### Issue tracker

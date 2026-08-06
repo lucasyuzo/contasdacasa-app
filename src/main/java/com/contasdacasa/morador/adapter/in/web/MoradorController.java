@@ -4,17 +4,17 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.contasdacasa.casa.adapter.in.web.CasaController;
-import com.contasdacasa.casa.application.BuscarCasaUseCase;
-import com.contasdacasa.casa.domain.Casa;
-import com.contasdacasa.morador.application.BuscarMoradorUseCase;
-import com.contasdacasa.morador.application.CriarMoradorUseCase;
-import com.contasdacasa.morador.application.ListarMoradoresUseCase;
-import com.contasdacasa.morador.application.RemoverMoradorUseCase;
-import com.contasdacasa.morador.application.ValidarMoradorPertenceACasaUseCase;
-import com.contasdacasa.morador.application.ValidarUsuarioDisponivelParaCasaUseCase;
-import com.contasdacasa.morador.domain.Morador;
-import com.contasdacasa.usuario.application.BuscarUsuarioUseCase;
-import com.contasdacasa.usuario.domain.Usuario;
+import com.contasdacasa.casa.application.domain.Casa;
+import com.contasdacasa.casa.application.usecase.BuscarCasaUseCase;
+import com.contasdacasa.morador.application.domain.Morador;
+import com.contasdacasa.morador.application.usecase.BuscarMoradorUseCase;
+import com.contasdacasa.morador.application.usecase.CriarMoradorUseCase;
+import com.contasdacasa.morador.application.usecase.ListarMoradoresUseCase;
+import com.contasdacasa.morador.application.usecase.RemoverMoradorUseCase;
+import com.contasdacasa.morador.application.usecase.ValidarMoradorPertenceACasaUseCase;
+import com.contasdacasa.morador.application.usecase.ValidarUsuarioDisponivelParaCasaUseCase;
+import com.contasdacasa.usuario.application.domain.Usuario;
+import com.contasdacasa.usuario.application.usecase.BuscarUsuarioUseCase;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.hateoas.CollectionModel;
@@ -87,9 +87,7 @@ class MoradorController {
   CollectionModel<MoradorResponse> listar(@PathVariable UUID casaId) {
     Casa casa = buscarCasaUseCase.executar(casaId);
     var moradores =
-        listarMoradoresUseCase.executar(casa).stream()
-            .map(MoradorController::toResponse)
-            .toList();
+        listarMoradoresUseCase.executar(casa).stream().map(MoradorController::toResponse).toList();
     return CollectionModel.of(moradores);
   }
 

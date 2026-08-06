@@ -1,10 +1,10 @@
 package com.contasdacasa.shared.adapter.in.web;
 
-import com.contasdacasa.casa.domain.CasaNaoEncontradaException;
-import com.contasdacasa.morador.domain.MoradorNaoEncontradoException;
-import com.contasdacasa.morador.domain.MoradorNaoPertenceACasaException;
-import com.contasdacasa.morador.domain.UsuarioJaEhMoradorDaCasaException;
-import com.contasdacasa.usuario.domain.UsuarioNaoEncontradoException;
+import com.contasdacasa.casa.application.exception.CasaNaoEncontradaException;
+import com.contasdacasa.morador.application.exception.MoradorNaoEncontradoException;
+import com.contasdacasa.morador.application.exception.MoradorNaoPertenceACasaException;
+import com.contasdacasa.morador.application.exception.UsuarioJaEhMoradorDaCasaException;
+import com.contasdacasa.usuario.application.exception.UsuarioNaoEncontradoException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
