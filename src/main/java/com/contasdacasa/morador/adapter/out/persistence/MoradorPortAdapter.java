@@ -31,7 +31,8 @@ class MoradorPortAdapter implements MoradorPort {
                             morador.getId(),
                             morador.getNome(),
                             morador.getCasaId(),
-                            morador.getUsuarioId()));
+                            morador.getUsuarioId(),
+                            morador.getRenda()));
         } catch (DataIntegrityViolationException e) {
             if (violaUniqueUsuarioCasa(e)) {
                 throw new UsuarioJaEhMoradorDaCasaException(
@@ -69,6 +70,10 @@ class MoradorPortAdapter implements MoradorPort {
 
     private Morador toDomain(MoradorJpaEntity entity) {
         return Morador.reconstituir(
-                entity.getId(), entity.getNome(), entity.getCasaId(), entity.getUsuarioId());
+                entity.getId(),
+                entity.getNome(),
+                entity.getCasaId(),
+                entity.getUsuarioId(),
+                entity.getRenda());
     }
 }

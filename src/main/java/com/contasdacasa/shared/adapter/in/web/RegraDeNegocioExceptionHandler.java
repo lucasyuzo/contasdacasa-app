@@ -3,6 +3,7 @@ package com.contasdacasa.shared.adapter.in.web;
 import com.contasdacasa.casa.application.exception.CasaNaoEncontradaException;
 import com.contasdacasa.despesa.application.exception.DespesaNaoEncontradaException;
 import com.contasdacasa.despesa.application.exception.DespesaNaoPertenceACasaException;
+import com.contasdacasa.despesa.application.exception.ParticipanteSemRendaException;
 import com.contasdacasa.divida.application.exception.DividaNaoEncontradaException;
 import com.contasdacasa.divida.application.exception.QuitacaoExcedeSaldoDaDividaException;
 import com.contasdacasa.divida.application.exception.QuitacaoValorInvalidoException;
@@ -50,6 +51,11 @@ class RegraDeNegocioExceptionHandler {
     @ExceptionHandler(DespesaNaoPertenceACasaException.class)
     ProblemDetail handleDespesaNaoPertenceACasa(DespesaNaoPertenceACasaException ex) {
         return notFound(ex.getMessage());
+    }
+
+    @ExceptionHandler(ParticipanteSemRendaException.class)
+    ProblemDetail handleParticipanteSemRenda(ParticipanteSemRendaException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(UsuarioJaEhMoradorDaCasaException.class)

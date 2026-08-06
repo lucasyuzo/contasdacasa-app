@@ -3,6 +3,7 @@ package com.contasdacasa.morador;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -180,6 +181,74 @@ class MoradorApiTest {
                                                 + usuarioId
                                                 + "\"}"))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void atualizaARendaDeUmMorador() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String moradorId = adicionarMorador(casaId, "Ana");
+
+        mockMvc.perform(
+                        put("/casas/" + casaId + "/moradores/" + moradorId + "/renda")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"valor\": \"3000.00\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.renda").value(3000.00));
+    }
+
+    @Test
+    void permiteAtualizarARendaDeUmMoradorMaisDeUmaVez() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String moradorId = adicionarMorador(casaId, "Ana");
+
+        mockMvc.perform(
+                put("/casas/" + casaId + "/moradores/" + moradorId + "/renda")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"valor\": \"3000.00\"}"));
+
+        mockMvc.perform(
+                        put("/casas/" + casaId + "/moradores/" + moradorId + "/renda")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"valor\": \"4500.50\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.renda").value(4500.50));
+    }
+
+    @Test
+    void rejeitaAtualizarRendaComValorZeroOuNegativo() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String moradorId = adicionarMorador(casaId, "Ana");
+
+        mockMvc.perform(
+                        put("/casas/" + casaId + "/moradores/" + moradorId + "/renda")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"valor\": \"0.00\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejeitaAtualizarRendaDeMoradorInexistente() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String moradorInexistente = UUID.randomUUID().toString();
+
+        mockMvc.perform(
+                        put("/casas/" + casaId + "/moradores/" + moradorInexistente + "/renda")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"valor\": \"3000.00\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejeitaAtualizarRendaDeMoradorQueNaoPertenceACasaInformada() throws Exception {
+        String casaA = criarCasa("Republica das Flores");
+        String casaB = criarCasa("Republica dos Girassois");
+        String moradorDaCasaA = adicionarMorador(casaA, "Ana");
+
+        mockMvc.perform(
+                        put("/casas/" + casaB + "/moradores/" + moradorDaCasaA + "/renda")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"valor\": \"3000.00\"}"))
+                .andExpect(status().isNotFound());
     }
 
     private String adicionarMorador(String casaId, String nome) throws Exception {

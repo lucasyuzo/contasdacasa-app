@@ -1,13 +1,16 @@
 package com.contasdacasa.despesa.application.domain;
 
+import com.contasdacasa.despesa.application.exception.ParticipanteSemRendaException;
 import com.contasdacasa.divida.application.domain.Divida;
 
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -21,6 +24,7 @@ public class Despesa {
     private final List<UUID> participantesIds;
     private final LocalDate dataVencimento;
     private final List<Divida> dividas;
+    private final TipoRateio tipoRateio;
 
     private Despesa(
             UUID id,
@@ -30,7 +34,8 @@ public class Despesa {
             UUID pagadorId,
             List<UUID> participantesIds,
             LocalDate dataVencimento,
-            List<Divida> dividas) {
+            List<Divida> dividas,
+            TipoRateio tipoRateio) {
         this.id = id;
         this.casaId = casaId;
         this.valor = valor;
@@ -39,6 +44,7 @@ public class Despesa {
         this.participantesIds = participantesIds;
         this.dataVencimento = dataVencimento;
         this.dividas = dividas;
+        this.tipoRateio = tipoRateio;
     }
 
     public static Despesa cadastrarComRateioIgual(
@@ -51,7 +57,39 @@ public class Despesa {
         UUID id = UUID.randomUUID();
         List<Divida> dividas = ratearIgual(id, valor, pagadorId, participantesIds);
         return new Despesa(
-                id, casaId, valor, natureza, pagadorId, participantesIds, dataVencimento, dividas);
+                id,
+                casaId,
+                valor,
+                natureza,
+                pagadorId,
+                participantesIds,
+                dataVencimento,
+                dividas,
+                TipoRateio.IGUAL);
+    }
+
+    public static Despesa cadastrarComRateioPorRenda(
+            UUID casaId,
+            BigDecimal valor,
+            Natureza natureza,
+            UUID pagadorId,
+            List<UUID> participantesIds,
+            Map<UUID, BigDecimal> rendasPorParticipante,
+            LocalDate dataVencimento) {
+        UUID id = UUID.randomUUID();
+        validarRendas(participantesIds, rendasPorParticipante);
+        List<Divida> dividas =
+                ratearPorRenda(id, valor, pagadorId, participantesIds, rendasPorParticipante);
+        return new Despesa(
+                id,
+                casaId,
+                valor,
+                natureza,
+                pagadorId,
+                participantesIds,
+                dataVencimento,
+                dividas,
+                TipoRateio.POR_RENDA);
     }
 
     public static Despesa reconstituir(
@@ -62,9 +100,18 @@ public class Despesa {
             UUID pagadorId,
             List<UUID> participantesIds,
             LocalDate dataVencimento,
-            List<Divida> dividas) {
+            List<Divida> dividas,
+            TipoRateio tipoRateio) {
         return new Despesa(
-                id, casaId, valor, natureza, pagadorId, participantesIds, dataVencimento, dividas);
+                id,
+                casaId,
+                valor,
+                natureza,
+                pagadorId,
+                participantesIds,
+                dataVencimento,
+                dividas,
+                tipoRateio);
     }
 
     private static List<Divida> ratearIgual(
@@ -84,6 +131,58 @@ public class Despesa {
             dividas.add(
                     Divida.gerar(
                             despesaId, participanteId, pagadorId, centavosParaValor(centavosParticipante)));
+        }
+        return dividas;
+    }
+
+    private static void validarRendas(
+            List<UUID> participantesIds, Map<UUID, BigDecimal> rendasPorParticipante) {
+        for (UUID participanteId : participantesIds) {
+            BigDecimal renda = rendasPorParticipante.get(participanteId);
+            if (renda == null || renda.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ParticipanteSemRendaException(participanteId);
+            }
+        }
+    }
+
+    private static List<Divida> ratearPorRenda(
+            UUID despesaId,
+            BigDecimal valor,
+            UUID pagadorId,
+            List<UUID> participantesIds,
+            Map<UUID, BigDecimal> rendasPorParticipante) {
+        long totalCentavos = valor.movePointRight(2).longValueExact();
+        BigDecimal totalRenda =
+                participantesIds.stream()
+                        .map(rendasPorParticipante::get)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        long[] centavosPorParticipante = new long[participantesIds.size()];
+        long somaCentavos = 0;
+        for (int i = 0; i < participantesIds.size(); i++) {
+            BigDecimal renda = rendasPorParticipante.get(participantesIds.get(i));
+            long centavos =
+                    BigDecimal.valueOf(totalCentavos)
+                            .multiply(renda)
+                            .divide(totalRenda, 0, RoundingMode.FLOOR)
+                            .longValueExact();
+            centavosPorParticipante[i] = centavos;
+            somaCentavos += centavos;
+        }
+        centavosPorParticipante[0] += totalCentavos - somaCentavos;
+
+        List<Divida> dividas = new ArrayList<>();
+        for (int i = 0; i < participantesIds.size(); i++) {
+            UUID participanteId = participantesIds.get(i);
+            if (participanteId.equals(pagadorId)) {
+                continue;
+            }
+            dividas.add(
+                    Divida.gerar(
+                            despesaId,
+                            participanteId,
+                            pagadorId,
+                            centavosParaValor(centavosPorParticipante[i])));
         }
         return dividas;
     }

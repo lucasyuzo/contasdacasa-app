@@ -7,6 +7,7 @@ import com.contasdacasa.casa.adapter.in.web.CasaController;
 import com.contasdacasa.casa.application.domain.Casa;
 import com.contasdacasa.casa.application.usecase.BuscarCasaUseCase;
 import com.contasdacasa.morador.application.domain.Morador;
+import com.contasdacasa.morador.application.usecase.AtualizarRendaUseCase;
 import com.contasdacasa.morador.application.usecase.BuscarMoradorUseCase;
 import com.contasdacasa.morador.application.usecase.CriarMoradorUseCase;
 import com.contasdacasa.morador.application.usecase.ListarMoradoresUseCase;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +44,7 @@ class MoradorController {
     private final ListarMoradoresUseCase listarMoradoresUseCase;
     private final ValidarMoradorPertenceACasaUseCase validarMoradorPertenceACasaUseCase;
     private final RemoverMoradorUseCase removerMoradorUseCase;
+    private final AtualizarRendaUseCase atualizarRendaUseCase;
 
     MoradorController(
             BuscarCasaUseCase buscarCasaUseCase,
@@ -51,7 +54,8 @@ class MoradorController {
             BuscarMoradorUseCase buscarMoradorUseCase,
             ListarMoradoresUseCase listarMoradoresUseCase,
             ValidarMoradorPertenceACasaUseCase validarMoradorPertenceACasaUseCase,
-            RemoverMoradorUseCase removerMoradorUseCase) {
+            RemoverMoradorUseCase removerMoradorUseCase,
+            AtualizarRendaUseCase atualizarRendaUseCase) {
         this.buscarCasaUseCase = buscarCasaUseCase;
         this.buscarUsuarioUseCase = buscarUsuarioUseCase;
         this.validarUsuarioDisponivelParaCasaUseCase = validarUsuarioDisponivelParaCasaUseCase;
@@ -60,6 +64,7 @@ class MoradorController {
         this.listarMoradoresUseCase = listarMoradoresUseCase;
         this.validarMoradorPertenceACasaUseCase = validarMoradorPertenceACasaUseCase;
         this.removerMoradorUseCase = removerMoradorUseCase;
+        this.atualizarRendaUseCase = atualizarRendaUseCase;
     }
 
     static MoradorResponse toResponse(Morador morador) {
@@ -68,7 +73,8 @@ class MoradorController {
                         morador.getId(),
                         morador.getNome(),
                         morador.getCasaId(),
-                        morador.getUsuarioId());
+                        morador.getUsuarioId(),
+                        morador.getRenda());
         response.add(
                 linkTo(
                                 methodOn(MoradorController.class)
@@ -118,5 +124,17 @@ class MoradorController {
         validarMoradorPertenceACasaUseCase.executar(morador, casa);
         removerMoradorUseCase.executar(morador);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{moradorId}/renda")
+    ResponseEntity<MoradorResponse> atualizarRenda(
+            @PathVariable UUID casaId,
+            @PathVariable UUID moradorId,
+            @Valid @RequestBody RendaRequest request) {
+        Casa casa = buscarCasaUseCase.executar(casaId);
+        Morador morador = buscarMoradorUseCase.executar(moradorId);
+        validarMoradorPertenceACasaUseCase.executar(morador, casa);
+        Morador atualizado = atualizarRendaUseCase.executar(morador, request.valor());
+        return ResponseEntity.ok(toResponse(atualizado));
     }
 }

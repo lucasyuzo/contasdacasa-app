@@ -35,7 +35,8 @@ class DespesaPortAdapter implements DespesaPort {
                         despesa.getNatureza(),
                         despesa.getPagadorId(),
                         despesa.getParticipantesIds(),
-                        despesa.getDataVencimento()));
+                        despesa.getDataVencimento(),
+                        despesa.getTipoRateio()));
         dividaPort.salvarTodas(despesa.getDividas());
         return despesa;
     }
@@ -61,6 +62,7 @@ class DespesaPortAdapter implements DespesaPort {
                 entity.getPagadorId(),
                 entity.getParticipantesIds(),
                 entity.getDataVencimento(),
-                dividas);
+                dividas,
+                entity.getTipoRateio());
     }
 }

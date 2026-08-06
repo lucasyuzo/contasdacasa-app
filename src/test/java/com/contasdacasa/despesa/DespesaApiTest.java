@@ -2,6 +2,7 @@ package com.contasdacasa.despesa;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -267,6 +268,107 @@ class DespesaApiTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void cadastraDespesaComRateioPorRendaDivideProporcionalmenteARendaDosParticipantes()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante1 = adicionarMorador(casaId, "Bruno");
+        String participante2 = adicionarMorador(casaId, "Carla");
+        atualizarRenda(casaId, pagadorId, "1000.00");
+        atualizarRenda(casaId, participante1, "3000.00");
+        atualizarRenda(casaId, participante2, "1000.00");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJsonPorRenda(
+                                                "100.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante1, participante2),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipoRateio").value("POR_RENDA"))
+                .andExpect(jsonPath("$.dividas.length()").value(2))
+                .andExpect(jsonPath("$.dividas[0].participanteId").value(participante1))
+                .andExpect(jsonPath("$.dividas[0].valor").value(60.00))
+                .andExpect(jsonPath("$.dividas[1].participanteId").value(participante2))
+                .andExpect(jsonPath("$.dividas[1].valor").value(20.00));
+    }
+
+    @Test
+    void diferencaDeCentavoDoRateioPorRendaFicaComOPrimeiroParticipante() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante1 = adicionarMorador(casaId, "Bruno");
+        String participante2 = adicionarMorador(casaId, "Carla");
+        String participante3 = adicionarMorador(casaId, "Diego");
+        atualizarRenda(casaId, participante1, "1000.00");
+        atualizarRenda(casaId, participante2, "2000.00");
+        atualizarRenda(casaId, participante3, "3000.00");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJsonPorRenda(
+                                                "10.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(participante1, participante2, participante3),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dividas[0].participanteId").value(participante1))
+                .andExpect(jsonPath("$.dividas[0].valor").value(1.67))
+                .andExpect(jsonPath("$.dividas[1].participanteId").value(participante2))
+                .andExpect(jsonPath("$.dividas[1].valor").value(3.33))
+                .andExpect(jsonPath("$.dividas[2].participanteId").value(participante3))
+                .andExpect(jsonPath("$.dividas[2].valor").value(5.00));
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComRateioPorRendaQuandoParticipanteNaoTemRendaCadastrada()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+        atualizarRenda(casaId, pagadorId, "1000.00");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJsonPorRenda(
+                                                "10.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                "2026-09-10")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void cadastraDespesaComRateioIgualQuandoTipoRateioNaoEhInformado() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipoRateio").value("IGUAL"));
+    }
+
     private String despesaJson(
             String valor,
             String natureza,
@@ -289,6 +391,37 @@ class DespesaApiTest {
                 + "], \"dataVencimento\": \""
                 + dataVencimento
                 + "\"}";
+    }
+
+    private String despesaJsonPorRenda(
+            String valor,
+            String natureza,
+            String pagadorId,
+            List<String> participantesIds,
+            String dataVencimento) {
+        String participantesJson =
+                participantesIds.stream()
+                        .map(id -> "\"" + id + "\"")
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("");
+        return "{\"valor\": \""
+                + valor
+                + "\", \"natureza\": \""
+                + natureza
+                + "\", \"tipoRateio\": \"POR_RENDA\", \"pagadorId\": \""
+                + pagadorId
+                + "\", \"participantesIds\": ["
+                + participantesJson
+                + "], \"dataVencimento\": \""
+                + dataVencimento
+                + "\"}";
+    }
+
+    private void atualizarRenda(String casaId, String moradorId, String valor) throws Exception {
+        mockMvc.perform(
+                put("/casas/" + casaId + "/moradores/" + moradorId + "/renda")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"valor\": \"" + valor + "\"}"));
     }
 
     private String adicionarMorador(String casaId, String nome) throws Exception {

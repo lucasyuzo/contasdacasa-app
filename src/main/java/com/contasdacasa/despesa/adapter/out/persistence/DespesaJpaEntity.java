@@ -1,6 +1,7 @@
 package com.contasdacasa.despesa.adapter.out.persistence;
 
 import com.contasdacasa.despesa.application.domain.Natureza;
+import com.contasdacasa.despesa.application.domain.TipoRateio;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -45,6 +46,10 @@ class DespesaJpaEntity {
     @Column(name = "data_vencimento")
     private LocalDate dataVencimento;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_rateio")
+    private TipoRateio tipoRateio;
+
     protected DespesaJpaEntity() {}
 
     DespesaJpaEntity(
@@ -54,7 +59,8 @@ class DespesaJpaEntity {
             Natureza natureza,
             UUID pagadorId,
             List<UUID> participantesIds,
-            LocalDate dataVencimento) {
+            LocalDate dataVencimento,
+            TipoRateio tipoRateio) {
         this.id = id;
         this.casaId = casaId;
         this.valor = valor;
@@ -62,6 +68,7 @@ class DespesaJpaEntity {
         this.pagadorId = pagadorId;
         this.participantesIds = participantesIds;
         this.dataVencimento = dataVencimento;
+        this.tipoRateio = tipoRateio;
     }
 
     UUID getId() {
@@ -90,5 +97,9 @@ class DespesaJpaEntity {
 
     LocalDate getDataVencimento() {
         return dataVencimento;
+    }
+
+    TipoRateio getTipoRateio() {
+        return tipoRateio;
     }
 }

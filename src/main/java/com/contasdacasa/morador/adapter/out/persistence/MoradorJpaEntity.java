@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -21,13 +22,17 @@ class MoradorJpaEntity {
     @Column(name = "usuario_id")
     private UUID usuarioId;
 
+    @Column(precision = 12, scale = 2)
+    private BigDecimal renda;
+
     protected MoradorJpaEntity() {}
 
-    MoradorJpaEntity(UUID id, String nome, UUID casaId, UUID usuarioId) {
+    MoradorJpaEntity(UUID id, String nome, UUID casaId, UUID usuarioId, BigDecimal renda) {
         this.id = id;
         this.nome = nome;
         this.casaId = casaId;
         this.usuarioId = usuarioId;
+        this.renda = renda;
     }
 
     UUID getId() {
@@ -44,5 +49,9 @@ class MoradorJpaEntity {
 
     UUID getUsuarioId() {
         return usuarioId;
+    }
+
+    BigDecimal getRenda() {
+        return renda;
     }
 }
