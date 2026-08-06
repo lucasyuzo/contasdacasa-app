@@ -6,6 +6,6 @@
 
 **Status:** ready-for-agent
 
-- [ ] Despesa com Rateio Valor Fixo: valor definido individualmente por Participante
-- [ ] Validação: soma dos Valores Fixos deve igualar exatamente o valor total da Despesa
-- [ ] Cadastro é rejeitado (erro de validação, não salva) quando a soma não bate
+- [x] Despesa com Rateio Valor Fixo: valor definido individualmente por Participante
+- [x] Validação: soma dos Valores Fixos deve igualar exatamente o valor total da Despesa
+- [x] Cadastro é rejeitado (erro de validação, não salva) quando a soma não bate
