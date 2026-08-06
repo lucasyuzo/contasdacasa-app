@@ -10,6 +10,7 @@ import com.contasdacasa.morador.application.exception.UsuarioJaEhMoradorDaCasaEx
 import com.contasdacasa.morador.application.port.MoradorPort;
 import com.contasdacasa.usuario.application.domain.Usuario;
 import com.contasdacasa.usuario.application.usecase.CriarUsuarioUseCase;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,18 +20,20 @@ import org.springframework.context.annotation.Import;
 @SpringBootTest
 class MoradorPortTest {
 
-  @Autowired MoradorPort moradorPort;
-  @Autowired CriarCasaUseCase criarCasaUseCase;
-  @Autowired CriarUsuarioUseCase criarUsuarioUseCase;
+    @Autowired MoradorPort moradorPort;
+    @Autowired CriarCasaUseCase criarCasaUseCase;
+    @Autowired CriarUsuarioUseCase criarUsuarioUseCase;
 
-  @Test
-  void rejeitaSalvarUsuarioComoMoradorDuasVezesDaMesmaCasaNaCamadaDePersistencia() {
-    Casa casa = criarCasaUseCase.executar("Republica das Flores");
-    Usuario usuario = criarUsuarioUseCase.executar("Ana");
-    moradorPort.salvar(Morador.adicionar(casa.getId(), usuario.getId(), "Ana"));
+    @Test
+    void rejeitaSalvarUsuarioComoMoradorDuasVezesDaMesmaCasaNaCamadaDePersistencia() {
+        Casa casa = criarCasaUseCase.executar("Republica das Flores");
+        Usuario usuario = criarUsuarioUseCase.executar("Ana");
+        moradorPort.salvar(Morador.adicionar(casa.getId(), usuario.getId(), "Ana"));
 
-    assertThatThrownBy(
-            () -> moradorPort.salvar(Morador.adicionar(casa.getId(), usuario.getId(), "Ana")))
-        .isInstanceOf(UsuarioJaEhMoradorDaCasaException.class);
-  }
+        assertThatThrownBy(
+                        () ->
+                                moradorPort.salvar(
+                                        Morador.adicionar(casa.getId(), usuario.getId(), "Ana")))
+                .isInstanceOf(UsuarioJaEhMoradorDaCasaException.class);
+    }
 }

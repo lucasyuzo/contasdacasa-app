@@ -4,44 +4,45 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "morador")
 class MoradorJpaEntity {
 
-  @Id private UUID id;
+    @Id private UUID id;
 
-  private String nome;
+    private String nome;
 
-  @Column(name = "casa_id")
-  private UUID casaId;
+    @Column(name = "casa_id")
+    private UUID casaId;
 
-  @Column(name = "usuario_id")
-  private UUID usuarioId;
+    @Column(name = "usuario_id")
+    private UUID usuarioId;
 
-  protected MoradorJpaEntity() {}
+    protected MoradorJpaEntity() {}
 
-  MoradorJpaEntity(UUID id, String nome, UUID casaId, UUID usuarioId) {
-    this.id = id;
-    this.nome = nome;
-    this.casaId = casaId;
-    this.usuarioId = usuarioId;
-  }
+    MoradorJpaEntity(UUID id, String nome, UUID casaId, UUID usuarioId) {
+        this.id = id;
+        this.nome = nome;
+        this.casaId = casaId;
+        this.usuarioId = usuarioId;
+    }
 
-  UUID getId() {
-    return id;
-  }
+    UUID getId() {
+        return id;
+    }
 
-  String getNome() {
-    return nome;
-  }
+    String getNome() {
+        return nome;
+    }
 
-  UUID getCasaId() {
-    return casaId;
-  }
+    UUID getCasaId() {
+        return casaId;
+    }
 
-  UUID getUsuarioId() {
-    return usuarioId;
-  }
+    UUID getUsuarioId() {
+        return usuarioId;
+    }
 }

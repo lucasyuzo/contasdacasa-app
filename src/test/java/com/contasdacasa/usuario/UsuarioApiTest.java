@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.contasdacasa.TestcontainersConfiguration;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,43 +21,40 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class UsuarioApiTest {
 
-  @Autowired MockMvc mockMvc;
+    @Autowired MockMvc mockMvc;
 
-  @Test
-  void criaUmUsuario() throws Exception {
-    mockMvc
-        .perform(
-            post("/usuarios")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
+    @Test
+    void criaUmUsuario() throws Exception {
+        mockMvc.perform(
+                        post("/usuarios")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"nome": "Ana"}
                                 """))
-        .andExpect(status().isCreated())
-        .andExpect(header().exists("Location"))
-        .andExpect(jsonPath("$.id").exists())
-        .andExpect(jsonPath("$.nome").value("Ana"))
-        .andExpect(jsonPath("$._links.self.href").exists());
-  }
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.nome").value("Ana"))
+                .andExpect(jsonPath("$._links.self.href").exists());
+    }
 
-  @Test
-  void consultaUsuarioPeloLocationRetornadoNaCriacao() throws Exception {
-    String location =
-        mockMvc
-            .perform(
-                post("/usuarios")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        """
+    @Test
+    void consultaUsuarioPeloLocationRetornadoNaCriacao() throws Exception {
+        String location =
+                mockMvc.perform(
+                                post("/usuarios")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(
+                                                """
                                 {"nome": "Ana"}
                                 """))
-            .andReturn()
-            .getResponse()
-            .getHeader("Location");
+                        .andReturn()
+                        .getResponse()
+                        .getHeader("Location");
 
-    mockMvc
-        .perform(get(location))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.nome").value("Ana"));
-  }
+        mockMvc.perform(get(location))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Ana"));
+    }
 }

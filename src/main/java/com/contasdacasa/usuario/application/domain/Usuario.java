@@ -7,11 +7,11 @@ import java.util.UUID;
 @Getter
 public class Usuario {
 
-  private final UUID id;
-  private final String nome;
+    private final UUID id;
+    private final String nome;
 
-  public Usuario(UUID id, String nome) {
-    this.id = id;
-    this.nome = nome;
-  }
+    public Usuario(UUID id, String nome) {
+        this.id = id;
+        this.nome = nome;
+    }
 }

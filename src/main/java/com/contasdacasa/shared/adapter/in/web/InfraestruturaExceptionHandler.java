@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class InfraestruturaExceptionHandler {
 
-  @ExceptionHandler(DataAccessException.class)
-  ProblemDetail handle(DataAccessException ex) {
-    return ProblemDetail.forStatusAndDetail(
-        HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno de infraestrutura");
-  }
+    @ExceptionHandler(DataAccessException.class)
+    ProblemDetail handle(DataAccessException ex) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno de infraestrutura");
+    }
 }
