@@ -1,0 +1,335 @@
+package com.contasdacasa.despesa;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.contasdacasa.TestcontainersConfiguration;
+import com.jayway.jsonpath.JsonPath;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+import java.util.UUID;
+
+@Import(TestcontainersConfiguration.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+class DespesaApiTest {
+
+    @Autowired MockMvc mockMvc;
+
+    @Test
+    void cadastraDespesaComRateioIgualGerandoDividasParaOsParticipantesExcetoOPagador()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante1 = adicionarMorador(casaId, "Bruno");
+        String participante2 = adicionarMorador(casaId, "Carla");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "100.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante1, participante2),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.valor").value(100.00))
+                .andExpect(jsonPath("$.natureza").value("VARIAVEL"))
+                .andExpect(jsonPath("$.pagadorId").value(pagadorId))
+                .andExpect(jsonPath("$.dataVencimento").value("2026-09-10"))
+                .andExpect(jsonPath("$.dividas.length()").value(2))
+                .andExpect(
+                        jsonPath(
+                                "$.dividas[*].participanteId",
+                                org.hamcrest.Matchers.containsInAnyOrder(
+                                        participante1, participante2)))
+                .andExpect(jsonPath("$.dividas[*].pagadorId").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is(pagadorId))))
+                .andExpect(jsonPath("$.dividas[*].valor").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is(33.33))))
+                .andExpect(jsonPath("$._links.self.href").exists())
+                .andExpect(jsonPath("$._links.casa.href").exists());
+    }
+
+    @Test
+    void diferencaDeCentavoDoRateioIgualFicaComOPrimeiroParticipante() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante1 = adicionarMorador(casaId, "Bruno");
+        String participante2 = adicionarMorador(casaId, "Carla");
+        String participante3 = adicionarMorador(casaId, "Diego");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "10.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(participante1, participante2, participante3),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dividas[0].participanteId").value(participante1))
+                .andExpect(jsonPath("$.dividas[0].valor").value(3.34))
+                .andExpect(jsonPath("$.dividas[1].participanteId").value(participante2))
+                .andExpect(jsonPath("$.dividas[1].valor").value(3.33))
+                .andExpect(jsonPath("$.dividas[2].participanteId").value(participante3))
+                .andExpect(jsonPath("$.dividas[2].valor").value(3.33));
+    }
+
+    @Test
+    void consultaDespesaPeloLocationRetornadoNaCriacao() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+
+        String location =
+                mockMvc.perform(
+                                post("/casas/" + casaId + "/despesas")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(
+                                                despesaJson(
+                                                        "50.00",
+                                                        "FIXA",
+                                                        pagadorId,
+                                                        List.of(pagadorId, participante),
+                                                        "2026-09-10")))
+                        .andReturn()
+                        .getResponse()
+                        .getHeader("Location");
+
+        assert location != null;
+        mockMvc.perform(get(location))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.natureza").value("FIXA"));
+    }
+
+    @Test
+    void permiteParticipantesQueNaoSaoTodosOsMoradoresDaCasa() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+        adicionarMorador(casaId, "Carla");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dividas.length()").value(1));
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaParaCasaInexistente() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+        String casaInexistente = UUID.randomUUID().toString();
+
+        mockMvc.perform(
+                        post("/casas/" + casaInexistente + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                "2026-09-10")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComPagadorInexistente() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String participante = adicionarMorador(casaId, "Bruno");
+        String pagadorInexistente = UUID.randomUUID().toString();
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagadorInexistente,
+                                                List.of(participante),
+                                                "2026-09-10")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComPagadorDeOutraCasa() throws Exception {
+        String casaA = criarCasa("Republica das Flores");
+        String casaB = criarCasa("Republica dos Girassois");
+        String pagadorDaCasaB = adicionarMorador(casaB, "Ana");
+        String participante = adicionarMorador(casaA, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaA + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagadorDaCasaB,
+                                                List.of(participante),
+                                                "2026-09-10")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComParticipanteDeOutraCasa() throws Exception {
+        String casaA = criarCasa("Republica das Flores");
+        String casaB = criarCasa("Republica dos Girassois");
+        String pagador = adicionarMorador(casaA, "Ana");
+        String participanteDeOutraCasa = adicionarMorador(casaB, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaA + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagador,
+                                                List.of(pagador, participanteDeOutraCasa),
+                                                "2026-09-10")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaSemParticipantes() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(despesaJson("20.00", "VARIAVEL", pagadorId, List.of(), "2026-09-10")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComValorNegativoOuZero() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "0.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(participante),
+                                                "2026-09-10")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComNaturezaInvalida() throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"valor\": \"20.00\", \"natureza\": \"ESPORADICA\", \"pagadorId\": \""
+                                                + pagadorId
+                                                + "\", \"participantesIds\": [\""
+                                                + participante
+                                                + "\"], \"dataVencimento\": \"2026-09-10\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    private String despesaJson(
+            String valor,
+            String natureza,
+            String pagadorId,
+            List<String> participantesIds,
+            String dataVencimento) {
+        String participantesJson =
+                participantesIds.stream()
+                        .map(id -> "\"" + id + "\"")
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("");
+        return "{\"valor\": \""
+                + valor
+                + "\", \"natureza\": \""
+                + natureza
+                + "\", \"pagadorId\": \""
+                + pagadorId
+                + "\", \"participantesIds\": ["
+                + participantesJson
+                + "], \"dataVencimento\": \""
+                + dataVencimento
+                + "\"}";
+    }
+
+    private String adicionarMorador(String casaId, String nome) throws Exception {
+        String usuarioId = criarUsuario(nome);
+        String response =
+                mockMvc.perform(
+                                post("/casas/" + casaId + "/moradores")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(
+                                                "{\"nome\": \""
+                                                        + nome
+                                                        + "\", \"usuarioId\": \""
+                                                        + usuarioId
+                                                        + "\"}"))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+        return JsonPath.read(response, "$.id");
+    }
+
+    private String criarUsuario(String nome) throws Exception {
+        String response =
+                mockMvc.perform(
+                                post("/usuarios")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content("{\"nome\": \"" + nome + "\"}"))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+        return JsonPath.read(response, "$.id");
+    }
+
+    private String criarCasa(String nome) throws Exception {
+        String response =
+                mockMvc.perform(
+                                post("/casas")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content("{\"nome\": \"" + nome + "\"}"))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+        return JsonPath.read(response, "$.id");
+    }
+}

@@ -1,6 +1,8 @@
 package com.contasdacasa.shared.adapter.in.web;
 
 import com.contasdacasa.casa.application.exception.CasaNaoEncontradaException;
+import com.contasdacasa.despesa.application.exception.DespesaNaoEncontradaException;
+import com.contasdacasa.despesa.application.exception.DespesaNaoPertenceACasaException;
 import com.contasdacasa.morador.application.exception.MoradorNaoEncontradoException;
 import com.contasdacasa.morador.application.exception.MoradorNaoPertenceACasaException;
 import com.contasdacasa.morador.application.exception.UsuarioJaEhMoradorDaCasaException;
@@ -34,6 +36,16 @@ class RegraDeNegocioExceptionHandler {
 
     @ExceptionHandler(UsuarioNaoEncontradoException.class)
     ProblemDetail handleUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex) {
+        return notFound(ex.getMessage());
+    }
+
+    @ExceptionHandler(DespesaNaoEncontradaException.class)
+    ProblemDetail handleDespesaNaoEncontrada(DespesaNaoEncontradaException ex) {
+        return notFound(ex.getMessage());
+    }
+
+    @ExceptionHandler(DespesaNaoPertenceACasaException.class)
+    ProblemDetail handleDespesaNaoPertenceACasa(DespesaNaoPertenceACasaException ex) {
         return notFound(ex.getMessage());
     }
 
