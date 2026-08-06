@@ -7,7 +7,6 @@ import com.contasdacasa.casa.adapter.in.web.CasaController;
 import com.contasdacasa.casa.application.domain.Casa;
 import com.contasdacasa.casa.application.usecase.BuscarCasaUseCase;
 import com.contasdacasa.despesa.application.domain.Despesa;
-import com.contasdacasa.despesa.application.domain.TipoRateio;
 import com.contasdacasa.despesa.application.usecase.BuscarDespesaUseCase;
 import com.contasdacasa.despesa.application.usecase.CriarDespesaUseCase;
 import com.contasdacasa.despesa.application.usecase.ValidarDespesaPertenceACasaUseCase;
@@ -92,14 +91,12 @@ class DespesaController {
                         .map(participanteId -> buscarEValidarMorador(participanteId, casa))
                         .toList();
 
-        TipoRateio tipoRateio = request.tipoRateio() != null ? request.tipoRateio() : TipoRateio.IGUAL;
-
         Despesa despesa =
                 criarDespesaUseCase.executar(
                         casa,
                         request.valor(),
                         request.natureza(),
-                        tipoRateio,
+                        request.tipoRateio(),
                         pagador,
                         participantes,
                         request.dataVencimento());

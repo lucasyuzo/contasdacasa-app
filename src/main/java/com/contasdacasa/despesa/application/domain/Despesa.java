@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -117,22 +118,13 @@ public class Despesa {
     private static List<Divida> ratearIgual(
             UUID despesaId, BigDecimal valor, UUID pagadorId, List<UUID> participantesIds) {
         long totalCentavos = valor.movePointRight(2).longValueExact();
-        int quantidade = participantesIds.size();
-        long valorBaseCentavos = totalCentavos / quantidade;
-        long restoCentavos = totalCentavos % quantidade;
+        long valorBaseCentavos = totalCentavos / participantesIds.size();
 
-        List<Divida> dividas = new ArrayList<>();
-        for (int i = 0; i < participantesIds.size(); i++) {
-            UUID participanteId = participantesIds.get(i);
-            if (participanteId.equals(pagadorId)) {
-                continue;
-            }
-            long centavosParticipante = valorBaseCentavos + (i == 0 ? restoCentavos : 0);
-            dividas.add(
-                    Divida.gerar(
-                            despesaId, participanteId, pagadorId, centavosParaValor(centavosParticipante)));
-        }
-        return dividas;
+        long[] centavosPorParticipante = new long[participantesIds.size()];
+        Arrays.fill(centavosPorParticipante, valorBaseCentavos);
+
+        return distribuirRestoEGerarDividas(
+                despesaId, pagadorId, participantesIds, totalCentavos, centavosPorParticipante);
     }
 
     private static void validarRendas(
@@ -158,17 +150,26 @@ public class Despesa {
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         long[] centavosPorParticipante = new long[participantesIds.size()];
-        long somaCentavos = 0;
         for (int i = 0; i < participantesIds.size(); i++) {
             BigDecimal renda = rendasPorParticipante.get(participantesIds.get(i));
-            long centavos =
+            centavosPorParticipante[i] =
                     BigDecimal.valueOf(totalCentavos)
                             .multiply(renda)
                             .divide(totalRenda, 0, RoundingMode.FLOOR)
                             .longValueExact();
-            centavosPorParticipante[i] = centavos;
-            somaCentavos += centavos;
         }
+
+        return distribuirRestoEGerarDividas(
+                despesaId, pagadorId, participantesIds, totalCentavos, centavosPorParticipante);
+    }
+
+    private static List<Divida> distribuirRestoEGerarDividas(
+            UUID despesaId,
+            UUID pagadorId,
+            List<UUID> participantesIds,
+            long totalCentavos,
+            long[] centavosPorParticipante) {
+        long somaCentavos = Arrays.stream(centavosPorParticipante).sum();
         centavosPorParticipante[0] += totalCentavos - somaCentavos;
 
         List<Divida> dividas = new ArrayList<>();
