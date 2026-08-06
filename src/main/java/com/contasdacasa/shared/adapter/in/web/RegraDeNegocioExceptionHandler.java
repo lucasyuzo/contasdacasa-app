@@ -4,6 +4,8 @@ import com.contasdacasa.casa.application.exception.CasaNaoEncontradaException;
 import com.contasdacasa.despesa.application.exception.DespesaNaoEncontradaException;
 import com.contasdacasa.despesa.application.exception.DespesaNaoPertenceACasaException;
 import com.contasdacasa.despesa.application.exception.ParticipanteSemRendaException;
+import com.contasdacasa.despesa.application.exception.ParticipanteSemValorFixoException;
+import com.contasdacasa.despesa.application.exception.SomaDosValoresFixosDivergeDoValorTotalException;
 import com.contasdacasa.divida.application.exception.DividaNaoEncontradaException;
 import com.contasdacasa.divida.application.exception.QuitacaoExcedeSaldoDaDividaException;
 import com.contasdacasa.divida.application.exception.QuitacaoValorInvalidoException;
@@ -55,6 +57,17 @@ class RegraDeNegocioExceptionHandler {
 
     @ExceptionHandler(ParticipanteSemRendaException.class)
     ProblemDetail handleParticipanteSemRenda(ParticipanteSemRendaException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ParticipanteSemValorFixoException.class)
+    ProblemDetail handleParticipanteSemValorFixo(ParticipanteSemValorFixoException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(SomaDosValoresFixosDivergeDoValorTotalException.class)
+    ProblemDetail handleSomaDosValoresFixosDivergeDoValorTotal(
+            SomaDosValoresFixosDivergeDoValorTotalException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 

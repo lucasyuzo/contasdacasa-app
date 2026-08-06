@@ -1,6 +1,8 @@
 package com.contasdacasa.despesa.application.domain;
 
 import com.contasdacasa.despesa.application.exception.ParticipanteSemRendaException;
+import com.contasdacasa.despesa.application.exception.ParticipanteSemValorFixoException;
+import com.contasdacasa.despesa.application.exception.SomaDosValoresFixosDivergeDoValorTotalException;
 import com.contasdacasa.divida.application.domain.Divida;
 
 import lombok.Getter;
@@ -93,6 +95,31 @@ public class Despesa {
                 TipoRateio.POR_RENDA);
     }
 
+    public static Despesa cadastrarComRateioValorFixo(
+            UUID casaId,
+            BigDecimal valor,
+            Natureza natureza,
+            UUID pagadorId,
+            List<UUID> participantesIds,
+            Map<UUID, BigDecimal> valoresFixosPorParticipante,
+            LocalDate dataVencimento) {
+        UUID id = UUID.randomUUID();
+        validarValoresFixos(valor, participantesIds, valoresFixosPorParticipante);
+        List<Divida> dividas =
+                ratearValorFixo(
+                        id, valor, pagadorId, participantesIds, valoresFixosPorParticipante);
+        return new Despesa(
+                id,
+                casaId,
+                valor,
+                natureza,
+                pagadorId,
+                participantesIds,
+                dataVencimento,
+                dividas,
+                TipoRateio.VALOR_FIXO);
+    }
+
     public static Despesa reconstituir(
             UUID id,
             UUID casaId,
@@ -156,6 +183,43 @@ public class Despesa {
                     BigDecimal.valueOf(totalCentavos)
                             .multiply(renda)
                             .divide(totalRenda, 0, RoundingMode.FLOOR)
+                            .longValueExact();
+        }
+
+        return distribuirRestoEGerarDividas(
+                despesaId, pagadorId, participantesIds, totalCentavos, centavosPorParticipante);
+    }
+
+    private static void validarValoresFixos(
+            BigDecimal valor,
+            List<UUID> participantesIds,
+            Map<UUID, BigDecimal> valoresFixosPorParticipante) {
+        BigDecimal soma = BigDecimal.ZERO;
+        for (UUID participanteId : participantesIds) {
+            BigDecimal valorFixo = valoresFixosPorParticipante.get(participanteId);
+            if (valorFixo == null) {
+                throw new ParticipanteSemValorFixoException(participanteId);
+            }
+            soma = soma.add(valorFixo);
+        }
+        if (soma.compareTo(valor) != 0) {
+            throw new SomaDosValoresFixosDivergeDoValorTotalException(valor, soma);
+        }
+    }
+
+    private static List<Divida> ratearValorFixo(
+            UUID despesaId,
+            BigDecimal valor,
+            UUID pagadorId,
+            List<UUID> participantesIds,
+            Map<UUID, BigDecimal> valoresFixosPorParticipante) {
+        long totalCentavos = valor.movePointRight(2).longValueExact();
+        long[] centavosPorParticipante = new long[participantesIds.size()];
+        for (int i = 0; i < participantesIds.size(); i++) {
+            centavosPorParticipante[i] =
+                    valoresFixosPorParticipante
+                            .get(participantesIds.get(i))
+                            .movePointRight(2)
                             .longValueExact();
         }
 

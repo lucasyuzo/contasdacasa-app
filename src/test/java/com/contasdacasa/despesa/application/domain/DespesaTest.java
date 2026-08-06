@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.contasdacasa.despesa.application.exception.ParticipanteSemRendaException;
+import com.contasdacasa.despesa.application.exception.ParticipanteSemValorFixoException;
+import com.contasdacasa.despesa.application.exception.SomaDosValoresFixosDivergeDoValorTotalException;
 import com.contasdacasa.divida.application.domain.Divida;
 
 import org.assertj.core.groups.Tuple;
@@ -232,5 +234,99 @@ class DespesaTest {
                                         rendas,
                                         LocalDate.of(2026, 8, 10)))
                 .isInstanceOf(ParticipanteSemRendaException.class);
+    }
+
+    @Test
+    void rateioValorFixoGeraDividasComOsValoresDefinidosPorParticipante() {
+        UUID casaId = UUID.randomUUID();
+        UUID pagadorId = UUID.randomUUID();
+        UUID participante1 = UUID.randomUUID();
+        UUID participante2 = UUID.randomUUID();
+        Map<UUID, BigDecimal> valoresFixos =
+                Map.of(
+                        pagadorId, new BigDecimal("20.00"),
+                        participante1, new BigDecimal("70.00"),
+                        participante2, new BigDecimal("10.00"));
+
+        Despesa despesa =
+                Despesa.cadastrarComRateioValorFixo(
+                        casaId,
+                        new BigDecimal("100.00"),
+                        Natureza.VARIAVEL,
+                        pagadorId,
+                        List.of(pagadorId, participante1, participante2),
+                        valoresFixos,
+                        LocalDate.of(2026, 8, 10));
+
+        assertThat(despesa.getTipoRateio()).isEqualTo(TipoRateio.VALOR_FIXO);
+        assertThat(despesa.getDividas())
+                .extracting(Divida::getParticipanteId, Divida::getPagadorId, Divida::getValor)
+                .containsExactlyInAnyOrder(
+                        Tuple.tuple(participante1, pagadorId, new BigDecimal("70.00")),
+                        Tuple.tuple(participante2, pagadorId, new BigDecimal("10.00")));
+    }
+
+    @Test
+    void naoGeraDividaDoPagadorParaSiMesmoNoRateioValorFixoQuandoElePropriaEhParticipante() {
+        UUID casaId = UUID.randomUUID();
+        UUID pagadorId = UUID.randomUUID();
+        UUID participante = UUID.randomUUID();
+        Map<UUID, BigDecimal> valoresFixos =
+                Map.of(pagadorId, new BigDecimal("4.00"), participante, new BigDecimal("6.00"));
+
+        Despesa despesa =
+                Despesa.cadastrarComRateioValorFixo(
+                        casaId,
+                        new BigDecimal("10.00"),
+                        Natureza.VARIAVEL,
+                        pagadorId,
+                        List.of(pagadorId, participante),
+                        valoresFixos,
+                        LocalDate.of(2026, 8, 10));
+
+        assertThat(despesa.getDividas())
+                .extracting(Divida::getParticipanteId, Divida::getPagadorId, Divida::getValor)
+                .containsExactly(Tuple.tuple(participante, pagadorId, new BigDecimal("6.00")));
+    }
+
+    @Test
+    void rejeitaRateioValorFixoQuandoSomaDosValoresDivergeDoValorTotal() {
+        UUID casaId = UUID.randomUUID();
+        UUID pagadorId = UUID.randomUUID();
+        UUID participante = UUID.randomUUID();
+        Map<UUID, BigDecimal> valoresFixos =
+                Map.of(pagadorId, new BigDecimal("4.00"), participante, new BigDecimal("5.00"));
+
+        assertThatThrownBy(
+                        () ->
+                                Despesa.cadastrarComRateioValorFixo(
+                                        casaId,
+                                        new BigDecimal("10.00"),
+                                        Natureza.VARIAVEL,
+                                        pagadorId,
+                                        List.of(pagadorId, participante),
+                                        valoresFixos,
+                                        LocalDate.of(2026, 8, 10)))
+                .isInstanceOf(SomaDosValoresFixosDivergeDoValorTotalException.class);
+    }
+
+    @Test
+    void rejeitaRateioValorFixoQuandoParticipanteNaoTemValorFixoDefinido() {
+        UUID casaId = UUID.randomUUID();
+        UUID pagadorId = UUID.randomUUID();
+        UUID participante = UUID.randomUUID();
+        Map<UUID, BigDecimal> valoresFixos = Map.of(pagadorId, new BigDecimal("10.00"));
+
+        assertThatThrownBy(
+                        () ->
+                                Despesa.cadastrarComRateioValorFixo(
+                                        casaId,
+                                        new BigDecimal("10.00"),
+                                        Natureza.VARIAVEL,
+                                        pagadorId,
+                                        List.of(pagadorId, participante),
+                                        valoresFixos,
+                                        LocalDate.of(2026, 8, 10)))
+                .isInstanceOf(ParticipanteSemValorFixoException.class);
     }
 }

@@ -99,6 +99,7 @@ class DespesaController {
                         request.tipoRateio(),
                         pagador,
                         participantes,
+                        request.valoresFixos(),
                         request.dataVencimento());
 
         return ResponseEntity.created(

@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 record DespesaRequest(
@@ -18,4 +19,5 @@ record DespesaRequest(
         TipoRateio tipoRateio,
         @NotNull UUID pagadorId,
         @NotEmpty List<UUID> participantesIds,
+        Map<UUID, BigDecimal> valoresFixos,
         @NotNull LocalDate dataVencimento) {}

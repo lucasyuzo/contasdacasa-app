@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Import(TestcontainersConfiguration.class)
@@ -369,6 +370,83 @@ class DespesaApiTest {
                 .andExpect(jsonPath("$.tipoRateio").value("IGUAL"));
     }
 
+    @Test
+    void cadastraDespesaComRateioValorFixoUsandoOsValoresDefinidosPorParticipante()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante1 = adicionarMorador(casaId, "Bruno");
+        String participante2 = adicionarMorador(casaId, "Carla");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJsonValorFixo(
+                                                "100.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante1, participante2),
+                                                Map.of(
+                                                        pagadorId, "20.00",
+                                                        participante1, "70.00",
+                                                        participante2, "10.00"),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipoRateio").value("VALOR_FIXO"))
+                .andExpect(jsonPath("$.dividas.length()").value(2))
+                .andExpect(
+                        jsonPath(
+                                "$.dividas[?(@.participanteId=='" + participante1 + "')].valor")
+                                .value(70.00))
+                .andExpect(
+                        jsonPath(
+                                "$.dividas[?(@.participanteId=='" + participante2 + "')].valor")
+                                .value(10.00));
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComRateioValorFixoQuandoSomaDivergeDoValorTotal()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJsonValorFixo(
+                                                "10.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                Map.of(pagadorId, "4.00", participante, "5.00"),
+                                                "2026-09-10")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejeitaCadastrarDespesaComRateioValorFixoQuandoParticipanteNaoTemValorDefinido()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJsonValorFixo(
+                                                "10.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                Map.of(pagadorId, "10.00"),
+                                                "2026-09-10")))
+                .andExpect(status().isBadRequest());
+    }
+
     private String despesaJson(
             String valor,
             String natureza,
@@ -413,6 +491,38 @@ class DespesaApiTest {
                 + "\", \"participantesIds\": ["
                 + participantesJson
                 + "], \"dataVencimento\": \""
+                + dataVencimento
+                + "\"}";
+    }
+
+    private String despesaJsonValorFixo(
+            String valor,
+            String natureza,
+            String pagadorId,
+            List<String> participantesIds,
+            Map<String, String> valoresFixos,
+            String dataVencimento) {
+        String participantesJson =
+                participantesIds.stream()
+                        .map(id -> "\"" + id + "\"")
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("");
+        String valoresFixosJson =
+                valoresFixos.entrySet().stream()
+                        .map(entry -> "\"" + entry.getKey() + "\": \"" + entry.getValue() + "\"")
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("");
+        return "{\"valor\": \""
+                + valor
+                + "\", \"natureza\": \""
+                + natureza
+                + "\", \"tipoRateio\": \"VALOR_FIXO\", \"pagadorId\": \""
+                + pagadorId
+                + "\", \"participantesIds\": ["
+                + participantesJson
+                + "], \"valoresFixos\": {"
+                + valoresFixosJson
+                + "}, \"dataVencimento\": \""
                 + dataVencimento
                 + "\"}";
     }

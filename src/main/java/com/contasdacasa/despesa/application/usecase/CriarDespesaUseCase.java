@@ -32,6 +32,7 @@ public class CriarDespesaUseCase {
             TipoRateio tipoRateioRequisitado,
             Morador pagador,
             List<Morador> participantes,
+            Map<UUID, BigDecimal> valoresFixosPorParticipante,
             LocalDate dataVencimento) {
         TipoRateio tipoRateio = tipoRateioRequisitado != null ? tipoRateioRequisitado : TipoRateio.IGUAL;
         List<UUID> participantesIds = participantes.stream().map(Morador::getId).toList();
@@ -53,6 +54,17 @@ public class CriarDespesaUseCase {
                                     pagador.getId(),
                                     participantesIds,
                                     rendasPorParticipante(participantes),
+                                    dataVencimento);
+                    case VALOR_FIXO ->
+                            Despesa.cadastrarComRateioValorFixo(
+                                    casa.getId(),
+                                    valor,
+                                    natureza,
+                                    pagador.getId(),
+                                    participantesIds,
+                                    valoresFixosPorParticipante != null
+                                            ? valoresFixosPorParticipante
+                                            : Map.of(),
                                     dataVencimento);
                 };
         return despesaPort.salvar(despesa);
