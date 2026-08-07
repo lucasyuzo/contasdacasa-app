@@ -34,7 +34,8 @@ public class CriarDespesaUseCase {
             List<Morador> participantes,
             Map<UUID, BigDecimal> valoresFixosPorParticipante,
             LocalDate dataVencimento) {
-        TipoRateio tipoRateio = tipoRateioRequisitado != null ? tipoRateioRequisitado : TipoRateio.IGUAL;
+        TipoRateio tipoRateio =
+                tipoRateioRequisitado != null ? tipoRateioRequisitado : casa.getRateioPadrao();
         List<UUID> participantesIds = participantes.stream().map(Morador::getId).toList();
         Despesa despesa =
                 switch (tipoRateio) {

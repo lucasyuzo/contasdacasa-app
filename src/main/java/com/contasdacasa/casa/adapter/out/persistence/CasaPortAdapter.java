@@ -19,7 +19,8 @@ class CasaPortAdapter implements CasaPort {
 
     @Override
     public Casa salvar(Casa casa) {
-        jpaRepository.save(new CasaJpaEntity(casa.getId(), casa.getNome()));
+        jpaRepository.save(
+                new CasaJpaEntity(casa.getId(), casa.getNome(), casa.getRateioPadrao()));
         return casa;
     }
 
@@ -27,6 +28,9 @@ class CasaPortAdapter implements CasaPort {
     public Optional<Casa> buscarPorId(UUID id) {
         return jpaRepository
                 .findById(id)
-                .map(entity -> Casa.reconstituir(entity.getId(), entity.getNome()));
+                .map(
+                        entity ->
+                                Casa.reconstituir(
+                                        entity.getId(), entity.getNome(), entity.getRateioPadrao()));
     }
 }

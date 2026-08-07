@@ -371,6 +371,57 @@ class DespesaApiTest {
     }
 
     @Test
+    void cadastraDespesaUsandoORateioPadraoDaCasaQuandoTipoRateioNaoEhInformado()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante1 = adicionarMorador(casaId, "Bruno");
+        String participante2 = adicionarMorador(casaId, "Carla");
+        atualizarRenda(casaId, pagadorId, "1000.00");
+        atualizarRenda(casaId, participante1, "3000.00");
+        atualizarRenda(casaId, participante2, "1000.00");
+        atualizarRateioPadrao(casaId, "POR_RENDA");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "100.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante1, participante2),
+                                                "2026-09-10")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipoRateio").value("POR_RENDA"));
+    }
+
+    @Test
+    void cadastraDespesaSobrescrevendoORateioPadraoDaCasaQuandoTipoRateioEhInformado()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+        atualizarRateioPadrao(casaId, "POR_RENDA");
+        atualizarRenda(casaId, pagadorId, "1000.00");
+        atualizarRenda(casaId, participante, "1000.00");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"valor\": \"20.00\", \"natureza\": \"VARIAVEL\", \"tipoRateio\": \"IGUAL\", \"pagadorId\": \""
+                                                + pagadorId
+                                                + "\", \"participantesIds\": [\""
+                                                + pagadorId
+                                                + "\", \""
+                                                + participante
+                                                + "\"], \"dataVencimento\": \"2026-09-10\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipoRateio").value("IGUAL"));
+    }
+
+    @Test
     void cadastraDespesaComRateioValorFixoUsandoOsValoresDefinidosPorParticipante()
             throws Exception {
         String casaId = criarCasa("Republica das Flores");
@@ -532,6 +583,13 @@ class DespesaApiTest {
                 put("/casas/" + casaId + "/moradores/" + moradorId + "/renda")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"valor\": \"" + valor + "\"}"));
+    }
+
+    private void atualizarRateioPadrao(String casaId, String tipoRateio) throws Exception {
+        mockMvc.perform(
+                put("/casas/" + casaId + "/rateio-padrao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"tipoRateio\": \"" + tipoRateio + "\"}"));
     }
 
     private String adicionarMorador(String casaId, String nome) throws Exception {
