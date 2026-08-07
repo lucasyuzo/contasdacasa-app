@@ -6,6 +6,6 @@
 
 **Status:** ready-for-agent
 
-- [ ] Configurar o tipo de Rateio padrão da Casa (Igual, Por Renda ou Valor Fixo)
-- [ ] Despesa cadastrada sem especificar tipo de Rateio usa o padrão configurado na Casa
-- [ ] Despesa pode sobrescrever o tipo de Rateio padrão individualmente
+- [x] Configurar o tipo de Rateio padrão da Casa (Igual, Por Renda ou Valor Fixo)
+- [x] Despesa cadastrada sem especificar tipo de Rateio usa o padrão configurado na Casa
+- [x] Despesa pode sobrescrever o tipo de Rateio padrão individualmente
