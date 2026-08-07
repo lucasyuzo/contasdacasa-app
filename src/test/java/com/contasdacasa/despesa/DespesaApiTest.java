@@ -397,6 +397,27 @@ class DespesaApiTest {
     }
 
     @Test
+    void rejeitaCadastrarDespesaQuandoRateioPadraoDaCasaEhValorFixoESemValoresInformados()
+            throws Exception {
+        String casaId = criarCasa("Republica das Flores");
+        String pagadorId = adicionarMorador(casaId, "Ana");
+        String participante = adicionarMorador(casaId, "Bruno");
+        atualizarRateioPadrao(casaId, "VALOR_FIXO");
+
+        mockMvc.perform(
+                        post("/casas/" + casaId + "/despesas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        despesaJson(
+                                                "20.00",
+                                                "VARIAVEL",
+                                                pagadorId,
+                                                List.of(pagadorId, participante),
+                                                "2026-09-10")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void cadastraDespesaSobrescrevendoORateioPadraoDaCasaQuandoTipoRateioEhInformado()
             throws Exception {
         String casaId = criarCasa("Republica das Flores");

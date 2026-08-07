@@ -1,6 +1,6 @@
 package com.contasdacasa.casa.application.domain;
 
-import com.contasdacasa.despesa.application.domain.TipoRateio;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import lombok.Getter;
 

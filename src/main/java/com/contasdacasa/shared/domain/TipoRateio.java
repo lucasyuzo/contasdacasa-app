@@ -1,4 +1,4 @@
-package com.contasdacasa.despesa.application.domain;
+package com.contasdacasa.shared.domain;
 
 public enum TipoRateio {
     IGUAL,

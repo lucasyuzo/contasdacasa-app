@@ -1,8 +1,8 @@
 package com.contasdacasa.despesa.adapter.in.web;
 
 import com.contasdacasa.despesa.application.domain.Natureza;
-import com.contasdacasa.despesa.application.domain.TipoRateio;
 import com.contasdacasa.divida.adapter.in.web.DividaResponse;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import lombok.Getter;
 

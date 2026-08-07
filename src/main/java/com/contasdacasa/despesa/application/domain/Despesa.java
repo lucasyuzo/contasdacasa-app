@@ -4,6 +4,7 @@ import com.contasdacasa.despesa.application.exception.ParticipanteSemRendaExcept
 import com.contasdacasa.despesa.application.exception.ParticipanteSemValorFixoException;
 import com.contasdacasa.despesa.application.exception.SomaDosValoresFixosDivergeDoValorTotalException;
 import com.contasdacasa.divida.application.domain.Divida;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import lombok.Getter;
 

@@ -1,6 +1,6 @@
 package com.contasdacasa.casa.adapter.out.persistence;
 
-import com.contasdacasa.despesa.application.domain.TipoRateio;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

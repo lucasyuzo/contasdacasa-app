@@ -2,7 +2,7 @@ package com.contasdacasa.casa.application.usecase;
 
 import com.contasdacasa.casa.application.domain.Casa;
 import com.contasdacasa.casa.application.port.CasaPort;
-import com.contasdacasa.despesa.application.domain.TipoRateio;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import org.springframework.stereotype.Service;
 

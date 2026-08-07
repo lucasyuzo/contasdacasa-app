@@ -1,7 +1,7 @@
 package com.contasdacasa.despesa.adapter.in.web;
 
 import com.contasdacasa.despesa.application.domain.Natureza;
-import com.contasdacasa.despesa.application.domain.TipoRateio;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;

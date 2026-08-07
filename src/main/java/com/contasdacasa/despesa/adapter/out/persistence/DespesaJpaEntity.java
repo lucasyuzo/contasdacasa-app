@@ -1,7 +1,7 @@
 package com.contasdacasa.despesa.adapter.out.persistence;
 
 import com.contasdacasa.despesa.application.domain.Natureza;
-import com.contasdacasa.despesa.application.domain.TipoRateio;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;

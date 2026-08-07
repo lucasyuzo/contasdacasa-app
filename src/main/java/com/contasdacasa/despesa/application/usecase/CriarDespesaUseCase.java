@@ -3,9 +3,9 @@ package com.contasdacasa.despesa.application.usecase;
 import com.contasdacasa.casa.application.domain.Casa;
 import com.contasdacasa.despesa.application.domain.Despesa;
 import com.contasdacasa.despesa.application.domain.Natureza;
-import com.contasdacasa.despesa.application.domain.TipoRateio;
 import com.contasdacasa.despesa.application.port.DespesaPort;
 import com.contasdacasa.morador.application.domain.Morador;
+import com.contasdacasa.shared.domain.TipoRateio;
 
 import org.springframework.stereotype.Service;
 
