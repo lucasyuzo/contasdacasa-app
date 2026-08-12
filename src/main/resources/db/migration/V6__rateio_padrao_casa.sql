@@ -1,0 +1,2 @@
+ALTER TABLE casa
+    ADD COLUMN rateio_padrao VARCHAR(20) NOT NULL DEFAULT 'IGUAL';
