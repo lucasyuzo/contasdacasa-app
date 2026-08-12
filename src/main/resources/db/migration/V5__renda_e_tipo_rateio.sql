@@ -1,0 +1,5 @@
+ALTER TABLE morador
+    ADD COLUMN renda NUMERIC(12, 2);
+
+ALTER TABLE despesa
+    ADD COLUMN tipo_rateio VARCHAR(20) NOT NULL DEFAULT 'IGUAL';
