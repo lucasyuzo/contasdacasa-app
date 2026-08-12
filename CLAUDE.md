@@ -2,7 +2,7 @@
 
 Stack: Java 26, Spring Boot 4.1.0, Maven (wrapper `./mvnw`), Postgres, Flyway.
 
-Banco: Postgres local na porta 5432, db `contasdacasa`, user `postgres` (ver `src/main/resources/application.properties`). Sem docker-compose no repo — subir Postgres manualmente antes de rodar a app ou os testes de integracao.
+Banco: Postgres local na porta 5432, db `contasdacasa`, user `postgres` (ver `src/main/resources/application.properties`). Subir Postgres manualmente antes de rodar a app ou os testes de integracao (`docker-compose.staging.yml`/`docker-compose.production.yml` sao so pros ambientes de VPS, ver ADR-0007/0011).
 
 Comandos:
 - Build: `./mvnw compile`
