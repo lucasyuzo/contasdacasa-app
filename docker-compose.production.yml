@@ -4,36 +4,37 @@
 # via env_file.
 services:
   app:
-    image: ghcr.io/lucasyuzo/contasdacasa-app:${IMAGE_TAG:-staging-latest}
+    image: ghcr.io/lucasyuzo/contasdacasa-app:latest
     restart: unless-stopped
     depends_on:
       - db
     env_file: .env
     environment:
-      SPRING_PROFILES_ACTIVE: staging
-      JAVA_OPTS: -Xmx512m
+      SPRING_PROFILES_ACTIVE: production
+      JAVA_OPTS: -Xmx768m
     ports:
-      - "127.0.0.1:8081:8080"
-    mem_limit: 768m
+      - "127.0.0.1:8080:8080"
+    mem_limit: 1024m
     networks:
-      - staging-net
+      - production-net
 
   db:
     image: postgres:17
+    container_name: contasdacasa-production-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: contasdacasa
     volumes:
-      - staging-db-data:/var/lib/postgresql/data
-    mem_limit: 384m
+      - production-db-data:/var/lib/postgresql/data
+    mem_limit: 512m
     networks:
-      - staging-net
+      - production-net
 
 networks:
-  staging-net:
+  production-net:
     driver: bridge
 
 volumes:
-  staging-db-data:
+  production-db-data:
