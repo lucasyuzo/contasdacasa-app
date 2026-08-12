@@ -31,3 +31,6 @@ target/
 # Operating System files
 .DS_Store
 Thumbs.db
+
+# Env files (segredos de runtime, ver ticket 13)
+.env

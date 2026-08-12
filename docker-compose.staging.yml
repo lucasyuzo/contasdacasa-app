@@ -1,0 +1,39 @@
+# Credenciais de DB_USER/DB_PASSWORD (usadas na interpolacao ${...} abaixo) vem
+# do .env na raiz deste arquivo (ticket 13, so na VPS), carregado automaticamente
+# pelo Docker Compose CLI. DB_URL/DB_USER/DB_PASSWORD do app tambem vem de la
+# via env_file.
+services:
+  app:
+    image: ghcr.io/lucasyuzo/contasdacasa-app:${IMAGE_TAG:-staging-latest}
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file: .env
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      JAVA_OPTS: -Xmx512m
+    ports:
+      - "127.0.0.1:8081:8080"
+    mem_limit: 768m
+    networks:
+      - staging-net
+
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: contasdacasa
+    volumes:
+      - staging-db-data:/var/lib/postgresql/data
+    mem_limit: 384m
+    networks:
+      - staging-net
+
+networks:
+  staging-net:
+    driver: bridge
+
+volumes:
+  staging-db-data:
